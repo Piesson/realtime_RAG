@@ -19,7 +19,40 @@ function App() {
     const [groundingFiles, setGroundingFiles] = useState<GroundingFile[]>([]);
     const [selectedFile, setSelectedFile] = useState<GroundingFile | null>(null);
 
+    const [chatHistory, setChatHistory] = useState<{
+        role: 'user' | 'ai';
+        message: string;
+        translatedMessage?: string;  // 번역된 텍스트 저장
+    }[]>([]);
+
+    // 번역 중인 상태 추가
+    const [translatingIndex, setTranslatingIndex] = useState<number | null>(null);
+
+    const translateMessage = async (message: string, index: number) => {
+        try {
+            setTranslatingIndex(index);
+            const response = await fetch('/api/translate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: message })
+            });
+            
+            const data = await response.json();
+            
+            setChatHistory(prev => prev.map((chat, i) => 
+                i === index 
+                    ? { ...chat, translatedMessage: data.translatedText }
+                    : chat
+            ));
+        } catch (error) {
+            console.error('Translation error:', error);
+        } finally {
+            setTranslatingIndex(null);
+        }
+    };
+
     const { startSession, addUserAudio, inputAudioBufferClear } = useRealTime({
+        enableInputAudioTranscription: true,
         onWebSocketOpen: () => console.log("WebSocket connection opened"),
         onWebSocketClose: () => console.log("WebSocket connection closed"),
         onWebSocketError: event => console.error("WebSocket error:", event),
@@ -40,6 +73,32 @@ function App() {
             });
 
             setGroundingFiles(prev => [...prev, ...files]);
+        }, 
+        onReceivedInputAudioTranscriptionCompleted: transcription => {
+            // 사용자 발화 완료시
+            if(transcription.transcript) {
+                setChatHistory(prev => [...prev, {
+                    role: 'user',
+                    message: transcription.transcript
+                }]);
+            }
+        },
+        onReceivedResponseDone: responseDone => {
+             // AI 응답 완료시
+             if (responseDone.response && responseDone.response.output) {
+                responseDone.response.output.forEach(output => {
+                    if (output.content) {
+                        output.content.forEach(content => {
+                            if (content.transcript) {
+                                setChatHistory(prev => [...prev, {
+                                    role: 'ai',
+                                    message: content.transcript
+                                }]);
+                            }
+                        });
+                    }
+                });
+            }
         }
     });
 
@@ -89,6 +148,39 @@ function App() {
                         )}
                     </Button>
                     <StatusMessage isRecording={isRecording} />
+                </div>
+                <div className="w-full max-w-2xl mx-auto mt-8 p-4 bg-white rounded-lg shadow">
+                    {chatHistory.map((chat, index) => (
+                        <div key={index} className={`mb-4 ${
+                            chat.role === 'user' ? 'text-right' : 'text-left'
+                        }`}>
+                            <div className={`inline-block p-3 rounded-lg ${
+                                chat.role === 'user' 
+                                    ? 'bg-purple-500 text-white' 
+                                    : 'bg-gray-200 text-gray-800'
+                            }`}>
+                                {chat.message}
+                                <div className="mt-2">
+                                    <button
+                                        onClick={() => translateMessage(chat.message, index)}
+                                        disabled={translatingIndex === index}
+                                        className={`text-xs underline ${
+                                            chat.role === 'ai' 
+                                                ? 'text-gray-600'  // AI 응답의 번역 버튼 스타일
+                                                : 'text-white'     // 사용자 메시지의 번역 버튼 스타일
+                                        }`}
+                                    >
+                                        {translatingIndex === index ? '...' : 'Translate'}
+                                    </button>
+                                    {chat.translatedMessage && (
+                                        <div className="mt-2 text-sm">
+                                            {chat.translatedMessage}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
                 <GroundingFiles files={groundingFiles} onSelected={setSelectedFile} />
             </main>
