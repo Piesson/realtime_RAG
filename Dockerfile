@@ -3,26 +3,20 @@ WORKDIR /app/frontend
 COPY app/frontend/ .
 RUN npm install
 RUN npm run build
+# 여기서 빌드 결과물이 /app/backend/static에 생성됨
 
 FROM python:3.11-slim
-WORKDIR /app
+WORKDIR /app/backend
 
-# 먼저 파일들을 복사
-COPY app/backend/ backend/
-COPY --from=frontend /app/frontend/../backend/static/ ./backend/static/
+# 백엔드 코드 복사
+COPY app/backend/ .
 
-# 필요한 패키지 설치
-RUN apt-get update && apt-get install -y \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# static 폴더 복사 (경로 수정)
+COPY --from=frontend /app/backend/static/ ./static/
 
-# Python 패키지 설치
-RUN cd backend && pip install -r requirements.txt
-
-# 간단한 권한 설정
-RUN chmod -R 755 backend
+RUN pip install -r requirements.txt
+RUN chmod -R 755 .
 
 EXPOSE 8766
 
-# 시작 명령어
-CMD ["python", "backend/app.py"]
+CMD ["python", "app.py"]
