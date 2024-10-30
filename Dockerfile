@@ -19,8 +19,10 @@ RUN apt-get update && apt-get install -y \
 # Python 패키지 설치
 RUN cd backend && pip install -r requirements.txt
 
-# 권한 설정
-RUN chmod -R 777 /app
+# 권한 설정 수정
+RUN chown -R root:root /app && \
+    chmod -R 755 /app && \
+    chmod -R 777 /app/backend  # 백엔드 폴더만 777 권한 부여
 
 EXPOSE 8766
 
