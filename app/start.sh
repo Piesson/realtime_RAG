@@ -1,10 +1,11 @@
 #!/bin/sh
 
 echo ""
-echo 'Creating python virtual environment ".venv"'
+# echo 'Creating python virtual environment ".venv"'
 echo ""
 cd ./backend
-python3 -m venv .venv
+# python3 -m venv .venv
+python app.py
 
 echo ""
 echo "Restoring backend python packages"
