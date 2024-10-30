@@ -6,18 +6,18 @@ RUN npm run build
 # 빌드 결과물이 /app/frontend/../backend/static에 생성됨
 
 FROM python:3.11-slim
-WORKDIR /app
+WORKDIR /app/backend
 
 # 백엔드 코드 복사
-COPY app/backend/ backend/
+COPY app/backend/ .
 
 # static 폴더 복사 (이 부분이 수정됨)
-COPY --from=frontend /app/frontend/../backend/static/ ./backend/static/
+COPY --from=frontend /app/frontend/../backend/static/ ./static/
 # vite.config.ts의 outDir: "../backend/static" 설정과 일치
 
-RUN cd backend && pip install -r requirements.txt
+RUN pip install -r requirements.txt
 RUN chmod -R 755 backend
 
 EXPOSE 8766
 
-CMD ["python", "backend/app.py"]
+CMD ["python", "app.py"]
