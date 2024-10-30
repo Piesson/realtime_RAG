@@ -13,25 +13,6 @@ from logging.handlers import RotatingFileHandler
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-# 파일 핸들러 설정
-file_handler = RotatingFileHandler(
-    'rtmt.log',
-    maxBytes=10*1024*1024,
-    backupCount=5,
-    encoding='utf-8'
-)
-file_handler.setFormatter(logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-))
-logger.addHandler(file_handler)
-
-# 콘솔 핸들러 설정
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-))
-logger.addHandler(console_handler)
-
 class ToolResultDirection(Enum):
     TO_SERVER = 1
     TO_CLIENT = 2
