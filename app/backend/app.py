@@ -96,7 +96,7 @@ if __name__ == "__main__":
     
     
     
-    web.run_app(app, host='localhost', port=8766)
+    web.run_app(app, host='0.0.0.0', port=8766)
     logger.info("Application started") # 새로 추가한 부분
     
     logging.getLogger('ragtools').setLevel(logging.DEBUG)
