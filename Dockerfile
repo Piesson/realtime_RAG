@@ -3,20 +3,23 @@ WORKDIR /app/frontend
 COPY app/frontend/ .
 RUN npm install
 RUN npm run build
-# 빌드 결과물이 backend/static 폴더에 생성됨
 
 FROM python:3.11-slim
 WORKDIR /app
-# 수정된 경로로 복사
-COPY --from=frontend /app/frontend/../backend/static/ ./backend/static/
+
+# 백엔드 파일 복사
 COPY app/backend/ backend/
 COPY app/start.sh .
+COPY --from=frontend /app/frontend/../backend/static/ ./backend/static/
 
+# 필요한 패키지 설치
 RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+# Python 패키지를 시스템에 직접 설치
 RUN cd backend && pip install -r requirements.txt
+
 RUN chmod +x start.sh
 
 EXPOSE 8766
