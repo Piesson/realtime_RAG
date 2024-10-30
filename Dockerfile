@@ -5,9 +5,9 @@ RUN npm install
 RUN npm run build
 
 FROM python:3.11-slim
-WORKDIR /app  # 여기를 /app으로 변경
+WORKDIR /app
 
-# 백엔드 코드 복사
+# 먼저 파일들을 복사
 COPY app/backend/ backend/
 COPY --from=frontend /app/frontend/../backend/static/ ./backend/static/
 
@@ -19,12 +19,10 @@ RUN apt-get update && apt-get install -y \
 # Python 패키지 설치
 RUN cd backend && pip install -r requirements.txt
 
-# 권한 설정 수정
-RUN chown -R root:root /app && \
-    chmod -R 755 /app && \
-    chmod -R 777 /app/backend  # 백엔드 폴더만 777 권한 부여
+# 간단한 권한 설정
+RUN chmod -R 755 backend
 
 EXPOSE 8766
 
 # 시작 명령어
-CMD ["python", "backend/app.py"]  # 경로 수정
+CMD ["python", "backend/app.py"]
