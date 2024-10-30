@@ -16,7 +16,7 @@ COPY --from=frontend /app/frontend/../backend/static/ ./static/
 # vite.config.ts의 outDir: "../backend/static" 설정과 일치
 
 RUN pip install -r requirements.txt
-RUN chmod -R 755 backend
+RUN chmod -R 755 .
 
 EXPOSE 8766
 
