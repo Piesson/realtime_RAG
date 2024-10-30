@@ -3,20 +3,21 @@ WORKDIR /app/frontend
 COPY app/frontend/ .
 RUN npm install
 RUN npm run build
-# 여기서 빌드 결과물이 /app/backend/static에 생성됨
+# 빌드 결과물이 /app/frontend/../backend/static에 생성됨
 
 FROM python:3.11-slim
-WORKDIR /app/backend
+WORKDIR /app
 
 # 백엔드 코드 복사
-COPY app/backend/ .
+COPY app/backend/ backend/
 
-# static 폴더 복사 (경로 수정)
-COPY --from=frontend /app/backend/static/ ./static/
+# static 폴더 복사 (이 부분이 수정됨)
+COPY --from=frontend /app/frontend/../backend/static/ ./backend/static/
+# vite.config.ts의 outDir: "../backend/static" 설정과 일치
 
-RUN pip install -r requirements.txt
-RUN chmod -R 755 .
+RUN cd backend && pip install -r requirements.txt
+RUN chmod -R 755 backend
 
 EXPOSE 8766
 
-CMD ["python", "app.py"]
+CMD ["python", "backend/app.py"]
